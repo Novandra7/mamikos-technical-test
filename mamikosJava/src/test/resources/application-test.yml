@@ -1,0 +1,17 @@
+spring:
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: ${JWT_SECRET:dGVzdC1vbmx5LXNlY3JldC1kby1ub3QtdXNlLWluLXByb2R1Y3Rpb24tMjU2Yml0bWlu}
+
+# Deterministic tests: throttling would make repeated calls in the same test flaky.
+rate-limit:
+  enabled: false
+
+logging:
+  level:
+    org.testcontainers: INFO
+    com.github.dockerjava: WARN
