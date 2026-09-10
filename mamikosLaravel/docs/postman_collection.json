@@ -1,0 +1,248 @@
+{
+  "info": {
+    "name": "MamiKos Kost API (Laravel)",
+    "description": "Collection covering every endpoint in PRD-01-Laravel.md. Import this file plus set the collection variables (base_url, owner_token, user_token) before running the demo scenario in §20 of the PRD.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000/api/v1" },
+    { "key": "owner_token", "value": "" },
+    { "key": "user_token", "value": "" },
+    { "key": "kost_id", "value": "1" },
+    { "key": "inquiry_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (regular)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rina\",\n  \"email\": \"rina@example.com\",\n  \"password\": \"Password123\",\n  \"password_confirmation\": \"Password123\",\n  \"phone\": \"081234567890\",\n  \"role\": \"regular\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register (owner)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pak Slamet\",\n  \"email\": \"slamet@example.com\",\n  \"password\": \"Password123\",\n  \"password_confirmation\": \"Password123\",\n  \"phone\": \"081200001111\",\n  \"role\": \"owner\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"rina@example.com\",\n  \"password\": \"Password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }],
+            "url": "{{base_url}}/auth/me"
+          }
+        },
+        {
+          "name": "Refresh",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }],
+            "url": "{{base_url}}/auth/refresh"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }],
+            "url": "{{base_url}}/auth/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Public Kost",
+      "item": [
+        {
+          "name": "Search kosts",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/kosts?location=Sleman&price_min=500000&price_max=2000000&sort_by=price&order=asc&page=1&per_page=10"
+          }
+        },
+        {
+          "name": "Kost detail",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/kosts/{{kost_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Owner Kost",
+      "item": [
+        {
+          "name": "Create kost",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{owner_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/owner/kosts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kost Melati Residence\",\n  \"description\": \"Kost putri eksklusif dekat kampus UGM.\",\n  \"address\": {\n    \"street\": \"Jl. Kaliurang KM 5 No. 12\",\n    \"district\": \"Depok\",\n    \"city\": \"Sleman\",\n    \"province\": \"DI Yogyakarta\",\n    \"postal_code\": \"55281\"\n  },\n  \"latitude\": -7.765,\n  \"longitude\": 110.375,\n  \"price_per_month\": 950000,\n  \"room_type\": \"putri\",\n  \"total_rooms\": 12,\n  \"available_rooms\": 4,\n  \"is_active\": true,\n  \"facilities\": [\"wifi\", \"kamar mandi dalam\", \"parkir motor\"],\n  \"photos\": [\"https://cdn.example.test/kost/7/1.jpg\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "List my kosts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{owner_token}}" }],
+            "url": "{{base_url}}/owner/kosts?page=1&per_page=10"
+          }
+        },
+        {
+          "name": "Owner kost detail",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{owner_token}}" }],
+            "url": "{{base_url}}/owner/kosts/{{kost_id}}"
+          }
+        },
+        {
+          "name": "Update kost (partial)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{owner_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/owner/kosts/{{kost_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price_per_month\": 1100000,\n  \"available_rooms\": 3\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete kost",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{owner_token}}" }],
+            "url": "{{base_url}}/owner/kosts/{{kost_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Availability Inquiry",
+      "item": [
+        {
+          "name": "Ask availability (-5 credit)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{user_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/kosts/{{kost_id}}/availability-inquiries",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Halo, apakah masih ada kamar kosong untuk bulan depan?\"\n}"
+            }
+          }
+        },
+        {
+          "name": "My inquiry history",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }],
+            "url": "{{base_url}}/me/inquiries"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Credit",
+      "item": [
+        {
+          "name": "My balance",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }],
+            "url": "{{base_url}}/me/credits"
+          }
+        },
+        {
+          "name": "My transactions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{user_token}}" }],
+            "url": "{{base_url}}/me/credits/transactions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Owner Inquiry Inbox",
+      "item": [
+        {
+          "name": "Incoming inquiries",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{owner_token}}" }],
+            "url": "{{base_url}}/owner/inquiries"
+          }
+        },
+        {
+          "name": "Reply to inquiry",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{owner_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{base_url}}/owner/inquiries/{{inquiry_id}}/reply",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reply\": \"Masih ada 3 kamar, silakan survei akhir pekan ini.\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ops",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health"
+          }
+        }
+      ]
+    }
+  ]
+}
