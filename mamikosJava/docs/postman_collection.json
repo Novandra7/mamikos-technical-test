@@ -1,0 +1,309 @@
+{
+  "info": {
+    "name": "MamiKos Kost API (Spring Boot)",
+    "description": "Register, search, and the credit-based availability inquiry flow. Set the collection variable baseUrl if not running on localhost:8080.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api/v1" },
+    { "key": "ownerToken", "value": "" },
+    { "key": "userToken", "value": "" },
+    { "key": "kostId", "value": "" },
+    { "key": "inquiryId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Owner",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.data && body.data.token) { pm.collectionVariables.set('ownerToken', body.data.token.accessToken); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pak Slamet\",\n  \"email\": \"owner-postman@example.com\",\n  \"password\": \"Password123\",\n  \"passwordConfirmation\": \"Password123\",\n  \"phone\": \"081200001111\",\n  \"role\": \"owner\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register Regular User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.data && body.data.token) { pm.collectionVariables.set('userToken', body.data.token.accessToken); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rina\",\n  \"email\": \"rina-postman@example.com\",\n  \"password\": \"Password123\",\n  \"passwordConfirmation\": \"Password123\",\n  \"role\": \"regular\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"regular@mamikos.test\",\n  \"password\": \"Password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/refresh",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"paste-refresh-token-here\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/auth/me"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/auth/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Kosts (Public)",
+      "item": [
+        {
+          "name": "Search — by location, sorted by price",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/kosts?location=Yogyakarta&sortBy=price&order=asc&page=1&perPage=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["kosts"],
+              "query": [
+                { "key": "location", "value": "Yogyakarta" },
+                { "key": "sortBy", "value": "price" },
+                { "key": "order", "value": "asc" },
+                { "key": "page", "value": "1" },
+                { "key": "perPage", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search — by name",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/kosts?name=melati"
+          }
+        },
+        {
+          "name": "Detail",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/kosts/{{kostId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Owner Kosts",
+      "item": [
+        {
+          "name": "Create Kost",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.data && body.data.id) { pm.collectionVariables.set('kostId', body.data.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ownerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/owner/kosts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kost Melati Residence\",\n  \"description\": \"Kost putri eksklusif dekat kampus.\",\n  \"address\": {\n    \"street\": \"Jl. Kaliurang KM 5\",\n    \"district\": \"Depok\",\n    \"city\": \"Sleman\",\n    \"province\": \"DI Yogyakarta\"\n  },\n  \"pricePerMonth\": 950000,\n  \"roomType\": \"PUTRI\",\n  \"totalRooms\": 12,\n  \"availableRooms\": 4,\n  \"facilities\": [\"wifi\", \"kamar mandi dalam\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "List My Kosts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "url": "{{baseUrl}}/owner/kosts"
+          }
+        },
+        {
+          "name": "Get One (owner view, includes availableRooms)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "url": "{{baseUrl}}/owner/kosts/{{kostId}}"
+          }
+        },
+        {
+          "name": "Patch",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ownerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/owner/kosts/{{kostId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pricePerMonth\": 1100000,\n  \"availableRooms\": 3\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete (soft delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "url": "{{baseUrl}}/owner/kosts/{{kostId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Availability Inquiries",
+      "item": [
+        {
+          "name": "Ask about availability (-5 credit)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.data && body.data.inquiry) { pm.collectionVariables.set('inquiryId', body.data.inquiry.id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/kosts/{{kostId}}/availability-inquiries",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Halo, apakah masih ada kamar kosong untuk bulan depan?\"\n}"
+            }
+          }
+        },
+        {
+          "name": "My Inquiry History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/me/inquiries"
+          }
+        },
+        {
+          "name": "Owner — List Inquiries Received",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ownerToken}}" }],
+            "url": "{{baseUrl}}/owner/inquiries"
+          }
+        },
+        {
+          "name": "Owner — Reply to Inquiry",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ownerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/owner/inquiries/{{inquiryId}}/reply",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reply\": \"Masih ada 3 kamar, silakan survei akhir pekan ini.\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Credits",
+      "item": [
+        {
+          "name": "Balance",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/me/credits"
+          }
+        },
+        {
+          "name": "Transaction History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/me/credits/transactions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Actuator Health",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:8080/actuator/health"
+          }
+        }
+      ]
+    }
+  ]
+}
