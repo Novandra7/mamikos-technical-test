@@ -1,0 +1,17 @@
+spring:
+  flyway:
+    # Demo accounts and sample kosts live in a profile-scoped migration folder
+    # so they can never be applied to production by accident.
+    locations: classpath:db/migration,classpath:db/migration/dev
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: ${JWT_SECRET:ZGV2LW9ubHktc2VjcmV0LWRvLW5vdC11c2UtaW4tcHJvZHVjdGlvbi0yNTZiaXQtbWluaW11bQ==}
+
+logging:
+  level:
+    com.mamikos.kostapi: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE

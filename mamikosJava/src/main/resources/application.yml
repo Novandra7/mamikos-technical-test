@@ -1,0 +1,134 @@
+spring:
+  application:
+    name: mamikos-kost-api
+
+  mvc:
+    # Without this, a request to an unmapped path falls through to Boot's default error
+    # page instead of raising an exception GlobalExceptionHandler can turn into our envelope.
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/mamikos_kost}
+    username: ${DB_USERNAME:mamikos}
+    password: ${DB_PASSWORD:secret}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 3000
+      pool-name: mamikos-pool
+
+  jpa:
+    # Flyway owns the schema. `validate` makes a drift between entities and
+    # migrations fail at startup instead of silently corrupting production.
+    hibernate:
+      ddl-auto: validate
+    # Keep lazy loading inside the transaction; without this, N+1 queries hide
+    # behind the view layer and only surface under load.
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2s
+      connect-timeout: 2s
+
+  jackson:
+    default-property-inclusion: non_null
+    mapper:
+      # Requests use lowercase enum values (role: "regular"); responses still render the
+      # enum's natural uppercase form — only deserialization is case-insensitive.
+      accept-case-insensitive-enums: true
+    serialization:
+      write-dates-as-timestamps: false
+
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+  compression:
+    enabled: true
+    mime-types: application/json
+  error:
+    include-stacktrace: never
+    include-message: never
+    include-exception: false
+    include-binding-errors: never
+
+jwt:
+  # Intentionally has no default: a secret with a fallback value is a secret
+  # that leaks. The application refuses to start without it.
+  secret: ${JWT_SECRET}
+  issuer: mamikos-kost-api
+  access-token-ttl: ${JWT_ACCESS_TOKEN_TTL:PT24H}
+  refresh-token-ttl: ${JWT_REFRESH_TOKEN_TTL:P7D}
+
+credit:
+  quota:
+    regular: ${CREDIT_QUOTA_REGULAR:20}
+    premium: ${CREDIT_QUOTA_PREMIUM:40}
+  inquiry-cost: ${CREDIT_INQUIRY_COST:5}
+  max-balance: ${CREDIT_MAX_BALANCE:200}
+  timezone: ${CREDIT_TIMEZONE:Asia/Jakarta}
+  recharge:
+    strategy: ${CREDIT_RECHARGE_STRATEGY:RESET}
+    cron: ${CREDIT_RECHARGE_CRON:0 0 0 1 * *}
+    batch-size: ${CREDIT_RECHARGE_BATCH_SIZE:1000}
+
+rate-limit:
+  enabled: ${RATE_LIMIT_ENABLED:true}
+  default-limit: 60
+  default-window: PT1M
+  auth-limit: 5
+  auth-window: PT1M
+  inquiry-limit: 20
+  inquiry-window: PT1M
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+  allowed-headers: "*"
+  max-age: 3600
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  api-docs:
+    path: /v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
+  health:
+    redis:
+      enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.mamikos.kostapi: INFO
